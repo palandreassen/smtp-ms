@@ -67,7 +67,7 @@ def main_func(pipe, reason, mail_header):
 
     if len(entities) == 0:
         return "Done"
-    if len(entities) > get_env('AMOUNT_CAP'):
+    if len(entities) > int(get_env('AMOUNT_CAP')):
         mass_email(pipe, len(entities), reason, mail_header)
     else:
         for entity in entities:

@@ -30,13 +30,13 @@ logger.addHandler(stdout_handler)
 logger.setLevel(logging.INFO)
 
 def mass_email(pipe, num, reason, mail_header):
-    msg = Message('SESAM ' + mail_header, sender="erik.leven@sesam.io", recipients=["erik.leven@sesam.io"])
+    msg = Message("SESAM " + mail_header, sender = "dont-reply@sesam.io", recipients = [get_env('MAIL_RECEIVER')])
 
     if reason == "dead-letters":
-        msg.body = 'The integration {} failed for {} entities during the last hour'.format(pipe, num)
+        msg.body = 'The integration {} failed for {} entities during the last hour \n For more information, please contact support@sesam.io or your direct Sesam contact.'.format(pipe, num)
 
     elif reason == "currentdepid":
-        msg.body = "{} ad-users are managers and are missing CurrentDepartmentID".format(num)
+        msg.body = "{} ad-users are managers and are missing CurrentDepartmentID \n For more information, please contact support@sesam.io or your direct Sesam contact.".format(num)
 
     else:
         logger.error("Missing reason statement from Sesam!")

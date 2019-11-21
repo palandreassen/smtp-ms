@@ -47,14 +47,19 @@ def mass_email(pipe, num, reason, mail_header):
         logger.error(e)
     return 0
     
+
 def find_key_string(dictionary):
     string = ""
     for i, key in enumerate(dictionary.keys()):
         try:
-            string +="\n" + key + ": " + "{" + find_key_string(dictionary[key]) + "}"  
+            if len(dictionary[key].keys()) != 0:
+                string +="\n" + key + ": " + "{" + find_key_string(dictionary[key]) + "}"  
+            else:
+                string +="\n" + key + ": " + dictionary[key]
         except AttributeError:
-            string 
-            string += "\n" + key + ": " + dictionary[key]
+            string += "\n" + key + ": " + str(dictionary[key])
+        if i != len(dictionary.keys())-1:
+            string += "," 
     return string
 
 

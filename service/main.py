@@ -41,11 +41,7 @@ def mass_email(pipe, num, reason, mail_header):
     else:
         logger.error("Missing reason statement from Sesam!")
 
-    try:
-        mail.send(msg)
-    except Exception as e:
-        logger.error(e)
-    return 0
+    return msg
     
 
 def find_key_string(dictionary):
@@ -73,11 +69,7 @@ def individual_emails(entity, pipe, reason, mail_header):
     elif reason == 'currentdepid':
         msg = Message("SESAM" + mail_header, sender = "dont-reply@sesam.io", recipients = [get_env('MAIL_RECEIVER')])
         msg.body = "AD-user %s is a manager but has no CurrentDepartmentID \n For more information, please contact support@sesam.io or your direct Sesam contact." % entity["employeeID"][0]
-    
-    try:
-        mail.send(msg)
-    except Exception as e:
-        logger.error("Error during email-constuction: {}".format(e))
+    return msg
 
 @app.route('/<string:pipe>/<string:reason>/<string:mail_header>', methods=['GET','POST'])
 def main_func(pipe, reason, mail_header):
@@ -86,15 +78,16 @@ def main_func(pipe, reason, mail_header):
     if len(entities) == 0:
         return "Done"
     if len(entities) > int(get_env('AMOUNT_CAP')):
-        mass_email(pipe, len(entities), reason, mail_header)
+        msg = mass_email(pipe, len(entities), reason, mail_header)
+        delete_entities(msg, entities, pipe)
     else:
         for entity in entities:
-            individual_emails(entity, pipe, reason, mail_header)
-    delete_entities(entities, pipe)
+            msg =  individual_emails(entity, pipe, reason, mail_header)
+            delete_entities(msg, [entity], pipe)
     return "Done"
 
 @app.route('/', methods=['GET','POST'])
-def delete_entities(entities, pipe):
+def delete_entities(msg, entities, pipe):
     header = {'Authorization': "Bearer {}".format(get_env('SESAM_JWT')), "content_type": "application/json"}
     for entity in entities:
         entity["_deleted"] = True
@@ -109,7 +102,13 @@ def delete_entities(entities, pipe):
         resp = requests.post(base_url + "datasets/%s/entities" % pipe, headers=header, data=json.dumps(entity), verify=False)
         if resp.status_code != 200:
             logger.error("Error in post to Sesam: status_code = {} for _id: {}".format(resp.status_code, entity['_id']))
-    logger.info("Mail sent")
+        else:
+            try:
+                mail.send(msg)
+                logger.info("Mail sent")
+            except Exception as e:
+                logger.error("Error during email-constuction: {}".format(e))
+
     
 if __name__ == '__main__':
 

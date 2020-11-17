@@ -27,7 +27,7 @@ format_string = '%(asctime)s - %(lineno)d - %(levelname)s - %(message)s'
 stdout_handler = logging.StreamHandler()
 stdout_handler.setFormatter(logging.Formatter(format_string))
 logger.addHandler(stdout_handler)
-logger.setLevel(logging.INFO)
+logger.setLevel(get_env('LOG_LEVEL'))
 
 def mass_email(pipe, num, reason, mail_header):
     msg = Message("SESAM " + mail_header, sender = "dont-reply@sesam.io", recipients = [get_env('MAIL_RECEIVER')])
@@ -69,6 +69,7 @@ def individual_emails(entity, pipe, reason, mail_header):
     elif reason == 'currentdepid':
         msg = Message("SESAM" + mail_header, sender = "dont-reply@sesam.io", recipients = [get_env('MAIL_RECEIVER')])
         msg.body = "AD-user %s is a manager but has no CurrentDepartmentID \n For more information, please contact support@sesam.io or your direct Sesam contact." % entity["employeeID"][0]
+    logger.debug(string(msg))
     return msg
 
 @app.route('/<string:pipe>/<string:reason>/<string:mail_header>', methods=['GET','POST'])
@@ -104,6 +105,7 @@ def delete_entities(msg, entities, pipe):
             logger.error("Error in post to Sesam: status_code = {} for _id: {}".format(resp.status_code, entity['_id']))
         else:
             try:
+                logger.send(msg)
                 mail.send(msg)
                 logger.info("Mail sent")
             except Exception as e:

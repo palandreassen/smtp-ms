@@ -27,7 +27,7 @@ format_string = '%(asctime)s - %(lineno)d - %(levelname)s - %(message)s'
 stdout_handler = logging.StreamHandler()
 stdout_handler.setFormatter(logging.Formatter(format_string))
 logger.addHandler(stdout_handler)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(get_env('LOG_LEVEL'))
 
 def mass_email(pipe, num, reason, mail_header):
     msg = Message("SESAM " + mail_header, sender = "dont-reply@sesam.io", recipients = [get_env('MAIL_RECEIVER')])

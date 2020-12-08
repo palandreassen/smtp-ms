@@ -3,7 +3,7 @@ FROM python:3-alpine
 RUN apk update
 
 RUN pip install --upgrade pip
-RUN apk --update add build-base libffi-dev libressl-dev python-dev py-pip
+RUN apk --update add build-base libffi-dev libressl-dev python3 python3-dev py3-pip
 RUN pip install cryptography
 
 COPY ./requirements.txt /requirements.txt
